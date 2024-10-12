@@ -1,0 +1,18 @@
+database:
+  type: "postgres"
+sync:
+  enabled: true
+  connection:
+    max_retries: 3
+    retry_backoff: "2s"
+  events:
+    event_types:
+      - "insert"
+      - "update"
+      - "delete"
+  mappings:
+    - database_table: "repos"
+      meilisearch_index: "repos"
+      fields:
+        - "id"
+        - "name"
