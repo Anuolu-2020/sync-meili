@@ -13,6 +13,7 @@ sync:
   mappings:
     - database_table: "repos"
       meilisearch_index: "repos"
+      meilisearch_index_document_uid: "id"
       fields:
         - "id"
         - "name"
