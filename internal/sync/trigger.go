@@ -55,7 +55,7 @@ func CreateTrigger(config config.SyncMeiliConfig) {
 	log.Print("Triggers created successfully")
 }
 
-func ListenAndSync() {
+func ListenAndSync(config *config.SyncMeiliConfig) {
 	dbConnStr := env.GetEnv("DB_CONNECTION_STRING")
 	listener := pq.NewListener(dbConnStr, 10*time.Second, time.Minute, nil)
 	defer listener.Close()
@@ -74,21 +74,15 @@ func ListenAndSync() {
 				listener.Ping()
 			}()
 		case notification := <-listener.Notify:
-			
-      var payload map[string]interface{}
+
+			var payload map[string]interface{}
 			err = json.Unmarshal([]byte(notification.Extra), &payload)
 			if err != nil {
 				log.Println("Error unmarshaling JSON:", err)
 				continue
 			}
 
-			fmt.Printf(
-				"Table: %s, Action: %s, Data: %v\n",
-				payload["table"],
-				payload["action"],
-				payload["data"],
-			)
-
+			
 		}
 	}
 }
