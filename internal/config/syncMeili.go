@@ -26,7 +26,8 @@ type SyncEvents struct {
 }
 
 type SyncMapping struct {
-	DatabaseTable    string   `yaml:"database_table"`
-	MeilisearchIndex string   `yaml:"meilisearch_index"`
-	Fields           []string `yaml:"fields"`
+	DatabaseTable               string   `yaml:"database_table"`
+	MeilisearchIndex            string   `yaml:"meilisearch_index"`
+	MeilisearchIndexDocumentUid string   `yaml:"meilisearch_index_document_uid"`
+	Fields                      []string `yaml:"fields"`
 }
