@@ -5,6 +5,7 @@ import (
 
 	"github.com/Anuolu-2020/sync-meili/internal/config"
 	"github.com/Anuolu-2020/sync-meili/internal/db"
+	"github.com/Anuolu-2020/sync-meili/internal/sync"
 )
 
 func main() {
@@ -15,6 +16,9 @@ func main() {
 
 	// Initialize database
 	db.InitDB(config)
+
+	// Initialize Syncing
+	sync.CreateTrigger(*config)
 
 	defer db.DBManager.Conn.Close()
 }
