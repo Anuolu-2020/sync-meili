@@ -46,6 +46,7 @@ func CreateTrigger(config config.SyncMeiliConfig) {
 					"Trigger for table %s already exists, skipping.\n",
 					mapping.DatabaseTable,
 				)
+				continue
 			} else {
 				log.Printf("Failed to create trigger for table %s: %v", mapping.DatabaseTable, err)
 			}
@@ -73,7 +74,7 @@ func ListenAndSync(config *config.SyncMeiliConfig) {
 			go func() {
 				listener.Ping()
 			}()
-		case notification := <-listener.Notify:
+		case notification := <-listener.Notify: // listen for changes in the database
 
 			var payload map[string]interface{}
 			err = json.Unmarshal([]byte(notification.Extra), &payload)
@@ -82,7 +83,9 @@ func ListenAndSync(config *config.SyncMeiliConfig) {
 				continue
 			}
 
-			
+			// Sync db row to meilisearch document
+			SyncToMeilisearch(config, payload)
+
 		}
 	}
 }
