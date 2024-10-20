@@ -10,6 +10,7 @@ import (
 	"github.com/Anuolu-2020/sync-meili/pkg/env"
 )
 
+// Configure meilisearch client and return the client
 func configureMeilisearchClient() meilisearch.ServiceManager {
 	client := meilisearch.New(
 		env.GetEnv("MEILISEARCH_CONN_STRING"),
@@ -19,6 +20,7 @@ func configureMeilisearchClient() meilisearch.ServiceManager {
 	return client
 }
 
+// Get meilisearch index from client
 func GetMeilisearchIndex(
 	client meilisearch.ServiceManager,
 	indexUid string,
@@ -66,9 +68,13 @@ func DeleteDocumentFromMeilisearch(
 }
 
 func SyncToMeilisearch(config *config.SyncMeiliConfig, payload map[string]interface{}) {
+	// Initialize meilisearch client
 	client := configureMeilisearchClient()
+
 	var index meilisearch.IndexManager
+
 	document := make(map[string]interface{})
+
 	for _, mapping := range config.Sync.Mappings {
 		if mapping.DatabaseTable == payload["table"] {
 			for _, field := range mapping.Fields {
@@ -82,15 +88,19 @@ func SyncToMeilisearch(config *config.SyncMeiliConfig, payload map[string]interf
 					[]map[string]interface{}{document})
 
 			case "UPDATE":
+				// Get document unique id value
+				documentId := document[mapping.MeilisearchIndexDocumentUid].(string)
 				UpdateDocumentInMeilisearch(
 					index,
-					mapping.MeilisearchIndexDocumentUid,
+					documentId,
 					[]map[string]interface{}{document})
 
 			case "DELETE":
+				// Get document id value
+				documentId := document[mapping.MeilisearchIndexDocumentUid].(string)
 				DeleteDocumentFromMeilisearch(
 					index,
-					mapping.MeilisearchIndexDocumentUid)
+					documentId)
 			}
 
 		}
