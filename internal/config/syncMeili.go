@@ -6,20 +6,20 @@ type SyncMeiliConfig struct {
 }
 
 type SyncConfig struct {
-	Enabled    bool           `yaml:"enabled"`
-	Connection SyncConnection `yaml:"connection"`
-	Events     SyncEvents     `yaml:"events"`
-	Mappings   []SyncMapping  `yaml:"mappings"`
+	Enabled bool `yaml:"enabled"`
+	// Connection SyncConnection `yaml:"connection"`
+	Events   SyncEvents    `yaml:"events"`
+	Mappings []SyncMapping `yaml:"mappings"`
 }
 
 type DatabaseConfig struct {
 	Type string `yaml:"type"`
 }
 
-type SyncConnection struct {
-	MaxRetries   int    `yaml:"max_retries"`
-	RetryBackOff string `yaml:"retry_backoff"`
-}
+// type SyncConnection struct {
+// 	MaxRetries   int    `yaml:"max_retries"`
+// 	RetryBackOff string `yaml:"retry_backoff"`
+// }
 
 type SyncEvents struct {
 	EventTypes []string `yaml:"event_types"`
