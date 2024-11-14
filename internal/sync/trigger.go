@@ -31,6 +31,8 @@ func CreateTrigger(config config.SyncMeiliConfig) {
 	`)
 	if err != nil {
 		log.Fatalf("Failed to create trigger function: %v", err)
+	} else {
+		log.Print("Trigger function created successfully")
 	}
 
 	for _, mapping := range config.Sync.Mappings {
@@ -52,12 +54,11 @@ func CreateTrigger(config config.SyncMeiliConfig) {
 			}
 		}
 	}
-
-	log.Print("Triggers created successfully")
 }
 
 func ListenAndSync(config *config.SyncMeiliConfig) {
 	dbConnStr := env.GetEnv("DB_CONNECTION_STRING")
+	// Create listener
 	listener := pq.NewListener(dbConnStr, 10*time.Second, time.Minute, nil)
 	defer listener.Close()
 
@@ -72,16 +73,19 @@ func ListenAndSync(config *config.SyncMeiliConfig) {
 		select {
 		case <-time.After(90 * time.Second):
 			go func() {
-				listener.Ping()
+				listener.Ping() // Ping database every 90 seconds
 			}()
 		case notification := <-listener.Notify: // listen for changes in the database
 
 			var payload map[string]interface{}
+			// Unmarshal json from database
 			err = json.Unmarshal([]byte(notification.Extra), &payload)
 			if err != nil {
 				log.Println("Error unmarshaling JSON:", err)
 				continue
 			}
+
+			// fmt.Printf("DB Payload: %v\n", payload)
 
 			// Sync db row to meilisearch document
 			SyncToMeilisearch(config, payload)
