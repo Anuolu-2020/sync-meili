@@ -2,7 +2,6 @@ package sync
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/meilisearch/meilisearch-go"
 
@@ -14,7 +13,7 @@ import (
 func configureMeilisearchClient() meilisearch.ServiceManager {
 	client := meilisearch.New(
 		env.GetEnv("MEILISEARCH_CONN_STRING"),
-		meilisearch.WithAPIKey(env.GetEnv("MEILISEARCH_APIKEY")),
+		meilisearch.WithAPIKey(env.GetEnv("MEILISEARCH_API_KEY")),
 	)
 
 	return client
@@ -33,25 +32,22 @@ func GetMeilisearchIndex(
 func AddDocumentToMeilisearch(index meilisearch.IndexManager, documents []map[string]interface{}) {
 	task, err := index.AddDocuments(documents)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Error inserting document to meilisearch: %v", err)
+	} else {
+		fmt.Printf("Add document taskuid: %d\n", task.TaskUID)
 	}
-
-	fmt.Printf("Add document taskuid: %d", task.TaskUID)
 }
 
 func UpdateDocumentInMeilisearch(
 	index meilisearch.IndexManager,
-	documentId string,
 	documents []map[string]interface{},
 ) {
-	task, err := index.UpdateDocuments(documents, documentId)
+	task, err := index.UpdateDocuments(documents)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Error updating document in meilisearch: %v", err)
+	} else {
+		fmt.Printf("Update document taskuid: %d\n", task.TaskUID)
 	}
-
-	fmt.Printf("Update document taskuid: %d", task.TaskUID)
 }
 
 func DeleteDocumentFromMeilisearch(
@@ -60,11 +56,10 @@ func DeleteDocumentFromMeilisearch(
 ) {
 	task, err := index.DeleteDocument(documentId)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Printf("Error deleting document in meilisearch: %v", err)
+	} else {
+		fmt.Printf("Delete document taskuid: %d\n", task.TaskUID)
 	}
-
-	fmt.Printf("Delete document taskuid: %d", task.TaskUID)
 }
 
 func SyncToMeilisearch(config *config.SyncMeiliConfig, payload map[string]interface{}) {
@@ -89,15 +84,13 @@ func SyncToMeilisearch(config *config.SyncMeiliConfig, payload map[string]interf
 
 			case "UPDATE":
 				// Get document unique id value
-				documentId := document[mapping.MeilisearchIndexDocumentUid].(string)
 				UpdateDocumentInMeilisearch(
 					index,
-					documentId,
 					[]map[string]interface{}{document})
 
 			case "DELETE":
 				// Get document id value
-				documentId := document[mapping.MeilisearchIndexDocumentUid].(string)
+				documentId := fmt.Sprintf("%v", document[mapping.MeilisearchIndexDocumentUid])
 				DeleteDocumentFromMeilisearch(
 					index,
 					documentId)
@@ -105,10 +98,4 @@ func SyncToMeilisearch(config *config.SyncMeiliConfig, payload map[string]interf
 
 		}
 	}
-	fmt.Printf(
-		"Table: %s, Action: %s, Data: %v\n",
-		payload["table"],
-		payload["action"],
-		payload["data"],
-	)
 }
