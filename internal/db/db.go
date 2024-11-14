@@ -14,12 +14,12 @@ type DBConnection struct {
 	Conn *sql.DB
 }
 
-var DBManager *DBConnection
+var DBManager = &DBConnection{}
 
-func InitDB(config *config.SyncMeiliConfig) {
+func InitDB(config config.SyncMeiliConfig) {
 	switch config.Database.Type {
 	case "postgres":
-		conn, err := postgres.Connect(env.GetEnv("DB_URL"))
+		conn, err := postgres.Connect(env.GetEnv("DB_CONNECTION_STRING"))
 		if err != nil {
 			log.Fatalf("Failed to connect to Postgres: %v", err)
 		}
