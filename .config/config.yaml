@@ -1,0 +1,20 @@
+database:
+  type: "postgres"
+sync:
+  enabled: true
+  # connection:
+  #   max_retries: 3
+  #   retry_backoff: "2s"
+  events:
+    event_types:
+      - "insert"
+      - "update"
+      - "delete"
+  mappings:
+    - database_table: "users"
+      meilisearch_index: "users"
+      meilisearch_index_document_uid: "id"
+      fields:
+        - "id"
+        - "name"
+        - "email"
