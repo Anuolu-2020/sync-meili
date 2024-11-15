@@ -70,10 +70,18 @@ func SyncToMeilisearch(config *config.SyncMeiliConfig, payload map[string]interf
 
 	document := make(map[string]interface{})
 
-	for _, mapping := range config.Sync.Mappings {
+	// Sync mappings for each table
+	mappings := config.Sync.Mappings
+
+	for _, mapping := range mappings {
 		if mapping.DatabaseTable == payload["table"] {
 			for _, field := range mapping.Fields {
-				document[field] = payload["data"].(map[string]interface{})[field]
+				if field == "*" || field == "" {
+					document = payload["data"].(map[string]interface{})
+					break
+				} else {
+					document[field] = payload["data"].(map[string]interface{})[field]
+				}
 			}
 			index = GetMeilisearchIndex(client, mapping.MeilisearchIndex)
 			switch payload["action"].(string) {
