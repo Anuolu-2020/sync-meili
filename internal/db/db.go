@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/go-mysql-org/go-mysql/canal"
+
 	"github.com/Anuolu-2020/sync-meili/internal/config"
 	"github.com/Anuolu-2020/sync-meili/internal/db/mysql"
 	"github.com/Anuolu-2020/sync-meili/internal/db/postgres"
@@ -11,7 +13,8 @@ import (
 )
 
 type DBConnection struct {
-	Conn *sql.DB
+	Conn       *sql.DB
+	MysqlCanal *canal.Canal
 }
 
 var DBManager = &DBConnection{}
@@ -26,12 +29,13 @@ func InitDB(config config.SyncMeiliConfig) {
 
 		DBManager.Conn = conn.Conn
 	case "mysql":
-		conn, err := mysql.Connect(env.GetEnv("DB_URL"))
+		mysqlCanal, err := mysql.Connect(config)
 		if err != nil {
 			log.Fatalf("Failed to connect to Mysql: %v", err)
 		}
 
-		DBManager.Conn = conn.Conn
+		DBManager.MysqlCanal = mysqlCanal.Canal
+
 	default:
 		log.Fatalf("Database type not supported")
 	}
