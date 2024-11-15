@@ -2,16 +2,18 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 
 	"github.com/Anuolu-2020/sync-meili/pkg/env"
 )
 
-func createSchema(db *sql.DB) error {
+func createPostgresSchema(db *sql.DB) error {
 	schema := `
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -39,7 +41,47 @@ func createSchema(db *sql.DB) error {
 	return err
 }
 
-func addUser(db *sql.DB) {
+func createMysqlSchema(db *sql.DB) error {
+	schema := []string{
+		`
+    CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    `,
+		`
+    CREATE TABLE IF NOT EXISTS products (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    `,
+		`
+    CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        product_id INT NOT NULL,
+        quantity INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    );
+    `,
+	}
+	for _, stmt := range schema {
+		_, err := db.Exec(stmt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func addUser(db *sql.DB, dbType string) {
 	var name, email string
 
 	fmt.Print("Enter a name: ")
@@ -48,9 +90,16 @@ func addUser(db *sql.DB) {
 	fmt.Print("Enter an email: ")
 	fmt.Scanln(&email)
 
+	var stmt string
+
+	if dbType == "postgres" {
+		stmt = "INSERT INTO users (name, email) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING"
+	} else {
+		stmt = "INSERT INTO users (name, email) VALUES (?, ?) ON DUPLICATE KEY UPDATE name = VALUES(name)"
+	}
+
 	fmt.Println("Inserting user into database")
-	_, err := db.Exec(
-		"INSERT INTO users (name, email) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING",
+	_, err := db.Exec(stmt,
 		name,
 		email,
 	)
@@ -61,7 +110,7 @@ func addUser(db *sql.DB) {
 	}
 }
 
-func addProduct(db *sql.DB) {
+func addProduct(db *sql.DB, dbType string) {
 	var name string
 	var price float64
 
@@ -71,8 +120,18 @@ func addProduct(db *sql.DB) {
 	fmt.Print("Enter a product price: ")
 	fmt.Scanln(&price)
 
+	var stmt string
+
+	if dbType == "postgres" {
+		stmt = "INSERT INTO products (name, price) VALUES ($1, $2) ON CONFLICT DO NOTHING"
+	} else {
+		stmt = `INSERT INTO products (name, price) 
+         VALUES (?, ?) 
+         ON DUPLICATE KEY UPDATE name = VALUES(name)`
+	}
+
 	_, err := db.Exec(
-		"INSERT INTO products (name, price) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+		stmt,
 		name,
 		price,
 	)
@@ -83,7 +142,7 @@ func addProduct(db *sql.DB) {
 	}
 }
 
-func addOrder(db *sql.DB) {
+func addOrder(db *sql.DB, dbType string) {
 	var userID, productID, quantity int
 
 	fmt.Print("Enter a user id: ")
@@ -95,8 +154,16 @@ func addOrder(db *sql.DB) {
 	fmt.Print("Enter a quantity: ")
 	fmt.Scanln(&quantity)
 
+	var stmt string
+
+	if dbType == "postgres" {
+		stmt = "INSERT INTO orders (user_id, product_id, quantity) VALUES ($1, $2, $3)"
+	} else {
+		stmt = "INSERT INTO orders (user_id, product_id, quantity) VALUES (?, ?, ?)"
+	}
+
 	_, err := db.Exec(
-		"INSERT INTO orders (user_id, product_id, quantity) VALUES ($1, $2, $3)",
+		stmt,
 		userID,
 		productID,
 		quantity,
@@ -108,7 +175,7 @@ func addOrder(db *sql.DB) {
 	}
 }
 
-func updateUser(db *sql.DB) {
+func updateUser(db *sql.DB, dbType string) {
 	var userID int
 	var name, email string
 
@@ -121,8 +188,15 @@ func updateUser(db *sql.DB) {
 	fmt.Print("Enter new email: ")
 	fmt.Scanln(&email)
 
+	var stmt string
+	if dbType == "postgres" {
+		stmt = "UPDATE users SET name = $1, email = $2 WHERE id = $3"
+	} else {
+		stmt = "UPDATE users SET name = ?, email = ? WHERE id = ?"
+	}
+
 	_, err := db.Exec(
-		"UPDATE users SET name = $1, email = $2 WHERE id = $3",
+		stmt,
 		name,
 		email,
 		userID,
@@ -134,7 +208,7 @@ func updateUser(db *sql.DB) {
 	}
 }
 
-func updateProduct(db *sql.DB) {
+func updateProduct(db *sql.DB, dbType string) {
 	var productID int
 	var name string
 	var price float64
@@ -148,8 +222,15 @@ func updateProduct(db *sql.DB) {
 	fmt.Print("Enter new product price: ")
 	fmt.Scanln(&price)
 
+	var stmt string
+	if dbType == "postgres" {
+		stmt = "UPDATE products SET name = $1, price = $2 WHERE id = $3"
+	} else {
+		stmt = "UPDATE products SET name = ?, price = ? WHERE id = ?"
+	}
+
 	_, err := db.Exec(
-		"UPDATE products SET name = $1, price = $2 WHERE id = $3",
+		stmt,
 		name,
 		price,
 		productID,
@@ -161,7 +242,7 @@ func updateProduct(db *sql.DB) {
 	}
 }
 
-func updateOrder(db *sql.DB) {
+func updateOrder(db *sql.DB, dbType string) {
 	var orderID, userID, productID, quantity int
 
 	fmt.Print("Enter order ID to update: ")
@@ -176,8 +257,15 @@ func updateOrder(db *sql.DB) {
 	fmt.Print("Enter new quantity: ")
 	fmt.Scanln(&quantity)
 
+	var stmt string
+	if dbType == "postgres" {
+		stmt = "UPDATE orders SET user_id = $1, product_id = $2, quantity = $3 WHERE id = $4"
+	} else {
+		stmt = "UPDATE orders SET user_id = ?, product_id = ?, quantity = ? WHERE id = ?"
+	}
+
 	_, err := db.Exec(
-		"UPDATE orders SET user_id = $1, product_id = $2, quantity = $3 WHERE id = $4",
+		stmt,
 		userID,
 		productID,
 		quantity,
@@ -190,14 +278,21 @@ func updateOrder(db *sql.DB) {
 	}
 }
 
-func deleteUser(db *sql.DB) {
+func deleteUser(db *sql.DB, dbType string) {
 	var userID int
 
 	fmt.Print("Enter user ID to delete: ")
 	fmt.Scanln(&userID)
 
+	var stmt string
+	if dbType == "postgres" {
+		stmt = "DELETE FROM users WHERE id = $1"
+	} else {
+		stmt = "DELETE FROM users WHERE id = ?"
+	}
+
 	_, err := db.Exec(
-		"DELETE FROM users WHERE id = $1",
+		stmt,
 		userID,
 	)
 	if err != nil {
@@ -207,14 +302,21 @@ func deleteUser(db *sql.DB) {
 	}
 }
 
-func deleteProduct(db *sql.DB) {
+func deleteProduct(db *sql.DB, dbType string) {
 	var productID int
 
 	fmt.Print("Enter product ID to delete: ")
 	fmt.Scanln(&productID)
 
+	var stmt string
+	if dbType == "postgres" {
+		stmt = "DELETE FROM products WHERE id = $1"
+	} else {
+		stmt = "DELETE FROM products WHERE id = ?"
+	}
+
 	_, err := db.Exec(
-		"DELETE FROM products WHERE id = $1",
+		stmt,
 		productID,
 	)
 	if err != nil {
@@ -224,14 +326,21 @@ func deleteProduct(db *sql.DB) {
 	}
 }
 
-func deleteOrder(db *sql.DB) {
+func deleteOrder(db *sql.DB, dbType string) {
 	var orderID int
 
 	fmt.Print("Enter order ID to delete: ")
 	fmt.Scanln(&orderID)
 
+	var stmt string
+	if dbType == "postgres" {
+		stmt = "DELETE FROM orders WHERE id = $1"
+	} else {
+		stmt = "DELETE FROM orders WHERE id = ?"
+	}
+
 	_, err := db.Exec(
-		"DELETE FROM orders WHERE id = $1",
+		stmt,
 		orderID,
 	)
 	if err != nil {
@@ -242,16 +351,31 @@ func deleteOrder(db *sql.DB) {
 }
 
 func main() {
-	db, err := sql.Open("postgres", env.GetEnv("DB_CONNECTION_STRING"))
+	// Define flags
+	dbType := flag.String("db", "postgres", "Database to use")
+
+	flag.Parse()
+
+	if *dbType != "postgres" && *dbType != "mysql" {
+		log.Fatalf("Database type %s not supported", *dbType)
+	}
+
+	db, err := sql.Open(*dbType, env.GetEnv("DB_CONNECTION_STRING"))
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
 	defer db.Close()
 	log.Printf("Connected to database successfully")
 
-	// Create tables
-	if err := createSchema(db); err != nil {
-		log.Fatalf("Failed to create schema: %v", err)
+	if *dbType == "postgres" {
+		// Create tables
+		if err := createPostgresSchema(db); err != nil {
+			log.Fatalf("Failed to create postgres table schema: %v", err)
+		}
+	} else {
+		if err := createMysqlSchema(db); err != nil {
+			log.Fatalf("Failed to create mysql table schema: %v", err)
+		}
 	}
 
 	fmt.Println("Database schema created and seeded successfully!")
@@ -280,23 +404,23 @@ func main() {
 
 		switch choice {
 		case 1:
-			addUser(db)
+			addUser(db, *dbType)
 		case 2:
-			updateUser(db)
+			updateUser(db, *dbType)
 		case 3:
-			deleteUser(db)
+			deleteUser(db, *dbType)
 		case 4:
-			addProduct(db)
+			addProduct(db, *dbType)
 		case 5:
-			updateProduct(db)
+			updateProduct(db, *dbType)
 		case 6:
-			deleteProduct(db)
+			deleteProduct(db, *dbType)
 		case 7:
-			addOrder(db)
+			addOrder(db, *dbType)
 		case 8:
-			updateOrder(db)
+			updateOrder(db, *dbType)
 		case 9:
-			deleteOrder(db)
+			deleteOrder(db, *dbType)
 		case 10:
 			fmt.Println("Exiting...")
 			return
