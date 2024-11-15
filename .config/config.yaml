@@ -1,10 +1,13 @@
 database:
-  type: "postgres"
+  type: "postgres" # "mysql" or "postgres"
 sync:
   enabled: true
-  # connection:
+  #connection:
   #   max_retries: 3
-  #   retry_backoff: "2s"
+  #   retry_backoff: 2000 # time to wait between retry
+  #batch:
+  #  batch_size: 50 # batch size before offloading (to be implemented)
+  # flush: 2000 #time in seconds to wait before offloading batch (to be implemented) 
   events:
     event_types:
       - "insert"
@@ -18,3 +21,8 @@ sync:
         - "id"
         - "name"
         - "email"
+    - database_table: "products"
+      meilisearch_index: "products"
+      meilisearch_index_document_uid: "id"
+      fields:
+        - "*"
