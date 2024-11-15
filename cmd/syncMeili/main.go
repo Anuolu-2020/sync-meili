@@ -25,14 +25,22 @@ func main() {
 	// Initialize database
 	db.InitDB(*config)
 
-	// Initialize Syncing
-	sync.CreateTrigger(*config)
+	if config.Database.Type == "postgres" {
+		// Initialize Syncing
+		sync.CreateTrigger(*config)
 
-	// Start syncing
-	go sync.ListenAndSync(config)
-	log.Print("Started listening for database updates")
+		// Start syncing
+		go sync.ListenAndSync(config)
+		log.Print("Started listening for database updates")
 
-	defer db.DBManager.Conn.Close()
+		defer db.DBManager.Conn.Close()
+
+	} else {
+		go sync.RegisterAndStartCanal(config)
+		log.Print("Started listening for database updates")
+
+		defer db.DBManager.MysqlCanal.Close()
+	}
 
 	// Webhook endpoint
 	http.HandleFunc("/webhook", webhook.WebhookHandler)
