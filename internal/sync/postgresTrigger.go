@@ -56,7 +56,7 @@ func CreateTrigger(config config.SyncMeiliConfig) {
 	}
 }
 
-func ListenAndSync(config *config.SyncMeiliConfig) {
+func ListenAndSync(config *config.SyncMeiliConfig, batchChannel chan<- MeiliSearchRequest) {
 	dbConnStr := env.GetEnv("DB_CONNECTION_STRING")
 	// Create listener
 	listener := pq.NewListener(dbConnStr, 10*time.Second, time.Minute, nil)
@@ -88,7 +88,7 @@ func ListenAndSync(config *config.SyncMeiliConfig) {
 			// fmt.Printf("DB Payload: %v\n", payload)
 
 			// Sync db row to meilisearch document
-			SyncToMeilisearch(config, payload)
+			FilterDocumentAndSync(config, payload, batchChannel)
 
 		}
 	}
