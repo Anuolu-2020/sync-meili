@@ -25,12 +25,14 @@ func main() {
 	// Initialize database
 	db.InitDB(*config)
 
+	batchChannel := make(chan sync.MeiliSearchRequest)
+
 	if config.Database.Type == "postgres" {
 		// Initialize Syncing
 		sync.CreateTrigger(*config)
 
 		// Start syncing
-		go sync.ListenAndSync(config)
+		go sync.ListenAndSync(config, batchChannel)
 		log.Print("Started listening for database updates")
 
 		defer db.DBManager.Conn.Close()
@@ -41,6 +43,9 @@ func main() {
 
 		defer db.DBManager.MysqlCanal.Close()
 	}
+
+	// Sync documents in batches
+	go sync.SyncInBatchRequest(batchChannel, config)
 
 	// Webhook endpoint
 	http.HandleFunc("/webhook", webhook.WebhookHandler)
