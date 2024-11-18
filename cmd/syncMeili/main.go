@@ -38,7 +38,7 @@ func main() {
 		defer db.DBManager.Conn.Close()
 
 	} else {
-		go sync.RegisterAndStartCanal(config)
+		go sync.RegisterAndStartCanal(config, batchChannel)
 		log.Print("Started listening for database updates")
 
 		defer db.DBManager.MysqlCanal.Close()
