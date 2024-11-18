@@ -15,7 +15,8 @@ import (
 // "github.com/siddontang/go-log/log"
 type MySqlEventHandler struct {
 	canal.DummyEventHandler
-	c *config.SyncMeiliConfig
+	c            *config.SyncMeiliConfig
+	batchChannel chan<- MeiliSearchRequest
 }
 
 func (h *MySqlEventHandler) OnRotate(
@@ -88,9 +89,10 @@ func (h *MySqlEventHandler) OnRow(e *canal.RowsEvent) error {
 		log.Printf("No sync action to be take")
 		return nil
 	}
-
 	// Decimal format
 	//	fmt.Printf("LOGPOS: %d\n", e.Header.LogPos)
+
+	FilterDocumentAndSync(h.c, payload, h.batchChannel)
 
 	return nil
 }
@@ -99,12 +101,17 @@ func (h *MySqlEventHandler) String() string {
 	return "MySqlEventHandler"
 }
 
-func RegisterAndStartCanal(config *config.SyncMeiliConfig) {
+func RegisterAndStartCanal(config *config.SyncMeiliConfig, batchChannel chan<- MeiliSearchRequest) {
 	mysqlCanal := db.DBManager.MysqlCanal
 
-	mysqlCanal.SetEventHandler(&MySqlEventHandler{c: config})
+	mysqlCanal.SetEventHandler(&MySqlEventHandler{c: config, batchChannel: batchChannel})
 
-	err := mysqlCanal.Run()
+	pos := mysql.Position{
+		Name: string("binlog.000993"),
+		Pos:  uint32(4),
+	}
+
+	err := mysqlCanal.RunFrom(pos)
 	if err != nil {
 		log.Printf("Error occurred while running canal: %v", err)
 	}
