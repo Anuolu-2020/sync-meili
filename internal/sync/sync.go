@@ -73,7 +73,9 @@ func SyncInBatchRequest(
 	retryPolicy := retrypolicy.Builder[any]().WithDelay(retryDelay).
 		WithMaxRetries(maxRetries).
 		AbortOnErrors(meilisearch.ErrRequestBodyWithoutContentType, meilisearch.ErrInvalidRequestMethod).
-		Build()
+		OnRetryScheduled(func(e failsafe.ExecutionScheduledEvent[any]) {
+			fmt.Println("Ping retry", e.Attempts(), "after delay of", e.Delay)
+		}).Build()
 
 	batchSize := config.Sync.Batch.BatchSize
 
