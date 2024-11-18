@@ -60,6 +60,7 @@ func ListenAndSync(config *config.SyncMeiliConfig, batchChannel chan<- MeiliSear
 	dbConnStr := env.GetEnv("DB_CONNECTION_STRING")
 	// Create listener
 	listener := pq.NewListener(dbConnStr, 10*time.Second, time.Minute, nil)
+
 	defer listener.Close()
 
 	err := listener.Listen("table_changes")
@@ -76,6 +77,9 @@ func ListenAndSync(config *config.SyncMeiliConfig, batchChannel chan<- MeiliSear
 				listener.Ping() // Ping database every 90 seconds
 			}()
 		case notification := <-listener.Notify: // listen for changes in the database
+			if notification.Extra == "" {
+				continue
+			}
 
 			var payload map[string]interface{}
 			// Unmarshal json from database
