@@ -1,14 +1,14 @@
 database:
-  type: "postgres" # "mysql" or "postgres"
+  type: "mysql" # "mysql" or "postgres"
 sync:
   enabled: true
   sync_request:
     max_retries: 3 # max retries on sync failure (e.g connection issues/error)
     retry_delay: "3s" # time to wait between retry
-    request_timeout: "1s" # excuetion time for each sync request
+    request_timeout: "20s" # excuetion time for each sync request
   batch:
     batch_size: 4 # batch size before offloading 
-    flush_duration: "5s" #time in milliseconds to wait before offloading batch  
+    flush_duration: "10s" #time in milliseconds to wait before offloading batch  
   events:
     event_types:
       - "insert"
