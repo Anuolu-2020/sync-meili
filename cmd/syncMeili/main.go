@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	config, err := config.LoadConfig(".config/config.yaml")
+	config, err := config.LoadConfig("./config.yaml")
 	if err != nil {
 		fmt.Printf("Failed to read sync-meili config: %v", err)
 		os.Exit(1)
