@@ -106,12 +106,12 @@ func RegisterAndStartCanal(config *config.SyncMeiliConfig, batchChannel chan<- M
 
 	mysqlCanal.SetEventHandler(&MySqlEventHandler{c: config, batchChannel: batchChannel})
 
-	pos := mysql.Position{
-		Name: string("binlog.000993"),
-		Pos:  uint32(4),
-	}
+	// pos := mysql.Position{
+	// 	Name: string("binlog.000993"),
+	// 	Pos:  uint32(4),
+	// }
 
-	err := mysqlCanal.RunFrom(pos)
+	err := mysqlCanal.Run()
 	if err != nil {
 		log.Printf("Error occurred while running canal: %v", err)
 	}
