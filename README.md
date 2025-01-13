@@ -1,6 +1,6 @@
-# Syncmelli
+# Syncmeili
 
-Syncmelli is an experimental tool written in Go designed to synchronize data between MySQL and PostgreSQL databases with [Meilisearch](https://www.meilisearch.com/). It provides a simple and efficient way to keep your Meilisearch indexes up-to-date with changes in your relational databases.
+Syncmeili is an experimental tool written in Go designed to synchronize data between MySQL and PostgreSQL databases with [Meilisearch](https://www.meilisearch.com/). It provides a simple and efficient way to keep your Meilisearch indexes up-to-date with changes in your relational databases.
 
 ## Features
 
@@ -12,27 +12,27 @@ Syncmelli is an experimental tool written in Go designed to synchronize data bet
 
 ## Installation
 
-To use Syncmelli, you need to have Go 1.16 or higher installed.
+To use Syncmeili, you need to have Go 1.16 or higher installed.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/syncmelli.git
-   cd syncmelli
-   go build -o syncmelli
+   git clone https://github.com/Anuolu-2020/syncmeli.git
+   cd syncmeili
+   go build -o syncmeili
    ```
 
-2. Configure Syncmelli by editing the config.yaml file (see Configuration below).
+2. Configure Syncmeili by editing the config.yaml file (see Configuration below).
 
-3. Run Syncmelli:
+3. Run Syncmeili:
    ```bash
-     ./syncmelli
+     ./syncmeili
    ```
 ## Configuration
 
-Syncmelli uses a config.yaml file to define the synchronization settings. Below is an example configuration:
+Syncmeili uses a config.yaml file to define the synchronization settings. Below is an example configuration:
 
 ```yaml
-    database:
+database:
   type: "postgres" # "mysql" or "postgres"
   server_id: 1 # for MySQL only
 
@@ -66,11 +66,10 @@ sync:
 
 ```
 ## Configuration Options
-  Database:
+###  Database:
     type: The type of database (mysql or postgres).
     server_id: Required for MySQL only. Used for replication purposes.
- 
-  Sync:
+###  Sync:
     enabled: Enable or disable synchronization.
     sync_request:
       max_retries: Maximum number of retries on sync failure.
@@ -88,12 +87,12 @@ sync:
        fields: List of fields to sync. Use "*" to sync all fields.
 
 ## Usage
-Once configured, Syncmelli will automatically sync the specified tables from MySQL or PostgreSQL to Meilisearch. You can start the sync process by running:
+Once configured, Syncmeili will automatically sync the specified tables from MySQL or PostgreSQL to Meilisearch. You can start the sync process by running:
 ```bash
-  ./syncmelli
+  ./syncmeili
 
 ```
-Syncmelli will monitor changes in your database and update the corresponding Meilisearch indexes in real-time.
+Syncmeili will monitor changes in your database and update the corresponding Meilisearch indexes in real-time.
 
 ### Note: 
- Syncmelli is currently in an experimental phase. Use it at your own risk.
+ Syncmeili is currently in an experimental phase. Use it at your own risk.
