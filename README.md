@@ -125,4 +125,4 @@ Once configured, Syncmeili will automatically sync the specified tables from MyS
 Syncmeili will monitor changes in your database and update the corresponding Meilisearch indexes in real-time.
 
 ### Note: 
- Syncmeili is currently in an experimental phase. Use it at your own risk.
+ Syncmeili is currently in an alpha phase. Use it at your own risk.
