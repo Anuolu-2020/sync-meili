@@ -89,8 +89,33 @@ sync:
   - **meilisearch_index_document_uid**: The primary key field in the Meilisearch index.
   - **fields**: List of fields to sync. Use `"*"` to sync all fields.
 
+
 ## Environment Variables
 
+The following environment variables are used to configure **SyncMeili**, Ensure these variables are set correctly before starting the application.
+
+```env
+# PostgreSQL connection string
+DB_CONNECTION_STRING=postgres://user:password@localhost:5432/mydatabase
+
+# Meilisearch connection string
+MEILISEARCH_CONN_STRING=http://localhost:7700
+
+# Meilisearch API key 
+MEILISEARCH_API_KEY=meilisearch-api-key
+
+# Port for the webhook server to receive webhook events from Meilisearch
+PORT=:8000
+
+# Auth token for the webhook endpoint, used in the Meilisearch webhook auth header
+WEBHOOK_AUTH_TOKEN=secret-token
+
+# MySQL connection details
+MYSQL_ADDR=localhost:3306              # MySQL server address
+MYSQL_USER=root                        # MySQL username
+MYSQL_PASSWORD=rootpassword            # MySQL password
+MYSQL_TABLE_DB=mydatabase              # MySQL database name for the table to sync
+```
 ## Usage
 Once configured, Syncmeili will automatically sync the specified tables from MySQL or PostgreSQL to Meilisearch. You can start the sync process by running:
 ```bash
