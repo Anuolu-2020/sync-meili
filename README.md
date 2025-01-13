@@ -51,7 +51,7 @@ sync:
       - "update"
       - "delete"
   mappings:
-    - database_table: "users" # defaults to public schema, for MySQL: "default.users" = db[default] table[users]
+    - database_table: "users" # defaults to public schema, only for postgres. Set MYSQL_TABLE_DB environment variable for mysql
       meilisearch_index: "users"
       meilisearch_index_document_uid: "id"
       fields:
