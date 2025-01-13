@@ -65,26 +65,31 @@ sync:
         - "*"
 
 ```
+
 ## Configuration Options
-###  Database:
-    type: The type of database (mysql or postgres).
-    server_id: Required for MySQL only. Used for replication purposes.
-###  Sync:
-    enabled: Enable or disable synchronization.
-    sync_request:
-      max_retries: Maximum number of retries on sync failure.
-      retry_delay: Time to wait between retries (e.g., "3s").
-      request_timeout: Maximum execution time for each sync request (e.g., "1s").
-    batch:
-      batch_size: Number of records to batch before offloading to Meilisearch.
-      flush_duration: Time to wait before offloading a batch (e.g., "5s").
-     events:
-       event_types: List of database events to sync (insert, update, delete).
-     mappings:
-       database_table: The database table to sync (e.g., "users" or "default.users" for MySQL).
-       meilisearch_index: The Meilisearch index name.
-       meilisearch_index_document_uid: The primary key field in the Meilisearch index.
-       fields: List of fields to sync. Use "*" to sync all fields.
+
+### Database
+- **type**: The type of database (`mysql` or `postgres`).
+- **server_id**: Required for MySQL only. Used for replication purposes.
+
+### Sync
+- **enabled**: Enable or disable synchronization.
+- **sync_request**:
+  - **max_retries**: Maximum number of retries on sync failure.
+  - **retry_delay**: Time to wait between retries (e.g., "3s").
+  - **request_timeout**: Maximum execution time for each sync request (e.g., "1s").
+- **batch**:
+  - **batch_size**: Number of records to batch before offloading to Meilisearch.
+  - **flush_duration**: Time to wait before offloading a batch (e.g., "5s").
+- **events**:
+  - **event_types**: List of database events to sync (`insert`, `update`, `delete`).
+- **mappings**:
+  - **database_table**: The database table to sync (e.g., `"users"` or `"default.users"` for MySQL).
+  - **meilisearch_index**: The Meilisearch index name.
+  - **meilisearch_index_document_uid**: The primary key field in the Meilisearch index.
+  - **fields**: List of fields to sync. Use `"*"` to sync all fields.
+
+## Environment Variables
 
 ## Usage
 Once configured, Syncmeili will automatically sync the specified tables from MySQL or PostgreSQL to Meilisearch. You can start the sync process by running:
